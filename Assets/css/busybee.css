@@ -1,0 +1,36 @@
+/* Question bar: one icon in front of the buttons, one button for each question, then one answer panel with an icon in front. */
+.busybee { margin: 0 0 1.25em; font-size: 0.85em; }
+.busybee-bar { display: flex; align-items: flex-start; gap: 0.6em; }
+.busybee-items { display: flex; flex-wrap: wrap; flex: 1; gap: 0.6em 1em; min-width: 0; }
+.busybee-item { display: inline-flex; align-items: center; gap: 0.4em; }
+.busybee-qicon, .busybee-aicon { flex: none; display: flex; align-items: center; justify-content: center; line-height: 1; color: var(--color-primary); }
+i.busybee-qicon, i.busybee-aicon { font-size: 1.5em; width: 1.15em; height: 1.15em; }
+.busybee-bar > i.busybee-qicon { margin-top: 0.15em; }  /* centers the icon on the first row of buttons */
+.busybee-q {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.4em 0.9em;
+    border: 1px solid var(--table-list-border-color, #ddd);
+    border-radius: 2em;
+    text-decoration: none;
+}
+.busybee-q:hover { border-color: var(--color-primary); }
+.busybee-on { border-color: var(--color-primary); font-weight: bold; }
+.busybee-count { font-size: 0.85em; padding: 0 0.5em; border-radius: 2em; background: var(--table-list-header-background-color); }
+.busybee-hot { background: #fbe9e7; color: #b71c1c; }
+.busybee-panel { margin: 0.75em 0 0; padding: 0.75em 1em; border: 1px solid var(--table-list-border-color, #ddd); border-radius: 4px; }
+.busybee-answer { display: flex; align-items: center; gap: 0.6em; font-size: 1.1em; margin: 0 0 0.5em; }
+.busybee-answer i.busybee-aicon { font-size: 1.36em; width: 1.15em; height: 1.15em; }  /* the line is 1.1em, so this renders at the size of the question icon */
+.busybee-scroll { overflow-x: auto; }
+.busybee-table { width: 100%; min-width: 30em; }
+.busybee-path { display: block; opacity: 0.8; font-size: 0.9em; }
+.busybee-more { margin: 0.5em 0 0; opacity: 0.8; }
+.busybee-track { display: inline-flex; width: 8em; height: 0.6em; margin-right: 0.5em; background: var(--table-list-header-background-color); border-radius: 0.3em; overflow: hidden; vertical-align: middle; }
+.busybee-track i { display: block; height: 100%; background: var(--color-primary); }
+.busybee-track i.busybee-late { background: #b71c1c; }
+
+.busybee-choices { display: flex; flex-wrap: wrap; gap: 0.5em 1.5em; margin: 0.5em 0; }
+.busybee-choices label { display: inline-flex; align-items: center; gap: 0.4em; }
+.busybee-choices i.busybee-qicon, .busybee-choices i.busybee-aicon { font-size: 1.15em; width: 1.2em; height: 1.2em; }
+.busybee-table tbody tr:nth-child(even) { background: color-mix(in srgb, currentColor 6%, transparent); }
