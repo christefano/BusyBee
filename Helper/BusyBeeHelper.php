@@ -30,7 +30,7 @@ class BusyBeeHelper extends Base
             try {
                 $helper = $this->helper->getHelper('sortaFolders');
 
-                if (method_exists($helper, 't') && method_exists($helper, 'userLink') && method_exists($helper, 'hoursText')) {
+                if (method_exists($helper, 't') && method_exists($helper, 'userLink') && method_exists($helper, 'hoursText') && method_exists($helper, 'projectPaths')) {
                     $this->sorta = $helper;
                 }
             } catch (\Throwable $e) {
@@ -74,6 +74,32 @@ class BusyBeeHelper extends Base
         }
 
         return $name;
+    }
+
+    /**
+     * The folder path of each project, id => label, for the blockers outside the page scope. Empty strings without SortaFolders, since
+     * there are no folders.
+     */
+    public function paths(array $ids)
+    {
+        if ($this->sorta() !== null) {
+            return $this->sorta()->projectPaths($ids);
+        }
+
+        return array_fill_keys(array_map('intval', $ids), '');
+    }
+
+    /**
+     * Ids of the projects SortaFolders hides from the signed-in user (a project in a hidden folder, for anyone but an admin). Empty without
+     * SortaFolders, or with a version of it that has no hidden folders.
+     */
+    public function hiddenProjectIds()
+    {
+        if ($this->sorta() !== null && method_exists($this->sorta(), 'hiddenProjectIds')) {
+            return array_map('intval', $this->sorta()->hiddenProjectIds());
+        }
+
+        return array();
     }
 
     /**
@@ -243,6 +269,23 @@ class BusyBeeHelper extends Base
     }
 
     /**
+     * The address parameters of a question link: $params plus the sort order, direction and page of the list under the bar, so
+     * asking a question does not send the list back to page one in its default order.
+     */
+    public function linkParams(array $params)
+    {
+        foreach (array('order', 'direction', 'page') as $name) {
+            $value = $this->request->getStringParam($name, '');
+
+            if ($value !== '' && ! array_key_exists($name, $params)) {
+                $params[$name] = $value;
+            }
+        }
+
+        return $params;
+    }
+
+    /**
      * Every question in button order: key => array(label, one-line description).
      */
     public function questionTexts()
@@ -257,7 +300,52 @@ class BusyBeeHelper extends Base
             'over'    => array($this->t('What is over its estimate?'), $this->t('Open tasks with more hours spent than estimated.')),
             'stuck'   => array($this->t('What has not moved in 30 days?'), $this->t('Open tasks whose last move is more than 30 days old.')),
             'week'    => array($this->t('What changed this week?'), $this->t('Tasks created and tasks finished in the last 7 days.')),
+            'active'  => array($this->t("What's being worked on?"), $this->t('Tasks changed in the last 30 days: edited, moved, commented on, and so on. Newest first.')),
         );
+    }
+
+    /**
+     * How the "What's being worked on?" answer words each kind of change: Kanboard's activity event name (or moved, edited or created for a
+     * task whose newest change left no event) => text.
+     */
+    public function changeTexts()
+    {
+        return array(
+            'task.create'                      => $this->t('Created'),
+            'task.update'                      => $this->t('Edited'),
+            'task.close'                       => $this->t('Closed'),
+            'task.open'                        => $this->t('Reopened'),
+            'task.move.column'                 => $this->t('Moved to another column'),
+            'task.move.position'               => $this->t('Moved within its column'),
+            'task.move.swimlane'               => $this->t('Moved to another swimlane'),
+            'task.move.project'                => $this->t('Moved to another project'),
+            'task.assignee_change'             => $this->t('Owner changed'),
+            'task.user.mention'                => $this->t('Someone was mentioned'),
+            'subtask.create'                   => $this->t('New subtask'),
+            'subtask.update'                   => $this->t('Subtask updated'),
+            'subtask.delete'                   => $this->t('Subtask deleted'),
+            'comment.create'                   => $this->t('New comment'),
+            'comment.update'                   => $this->t('Comment edited'),
+            'comment.delete'                   => $this->t('Comment deleted'),
+            'comment.user.mention'             => $this->t('Someone was mentioned in a comment'),
+            'task.file.create'                 => $this->t('File attached'),
+            'task.file.destroy'                => $this->t('File removed'),
+            'task_internal_link.create_update' => $this->t('Link added or changed'),
+            'task_internal_link.delete'        => $this->t('Link removed'),
+            'moved'                            => $this->t('Moved'),
+            'edited'                           => $this->t('Edited'),
+            'created'                          => $this->t('Created'),
+        );
+    }
+
+    /**
+     * The text for one change code, "Updated" for a code this list does not know.
+     */
+    public function changeText($code)
+    {
+        $texts = $this->changeTexts();
+
+        return isset($texts[$code]) ? $texts[$code] : $this->t('Updated');
     }
 
     /**
@@ -291,11 +379,11 @@ class BusyBeeHelper extends Base
     public static function getQuestionPages()
     {
         return array(
-            'folder'   => array('late', 'done', 'due', 'load', 'blocked', 'unowned', 'over', 'stuck', 'week'),
-            'overview' => array('late', 'done', 'due', 'load', 'blocked', 'unowned', 'over', 'stuck', 'week'),
-            'projects' => array('late', 'done', 'due', 'load', 'blocked', 'unowned', 'over', 'stuck', 'week'),
-            'tasks'    => array('late', 'done', 'due', 'blocked', 'over', 'stuck', 'week'),
-            'subtasks' => array('late', 'due', 'blocked', 'stuck'),
+            'folder'   => array('late', 'done', 'due', 'load', 'blocked', 'unowned', 'over', 'stuck', 'week', 'active'),
+            'overview' => array('late', 'done', 'due', 'load', 'blocked', 'unowned', 'over', 'stuck', 'week', 'active'),
+            'projects' => array('late', 'done', 'due', 'load', 'blocked', 'unowned', 'over', 'stuck', 'week', 'active'),
+            'tasks'    => array('late', 'done', 'due', 'blocked', 'over', 'stuck', 'week', 'active'),
+            'subtasks' => array('late', 'due', 'blocked', 'stuck', 'active'),
         );
     }
 
@@ -336,8 +424,8 @@ class BusyBeeHelper extends Base
 
     /**
      * The data Template/ask.php needs for the open page, or null when the page has no questions or the admin turned them all
-     * off. $page is "folder", "overview", "projects", "tasks" or "subtasks". $scope is the visible projects keyed by id, each with "name"
-     * and "sf_path". $mine narrows the tasks to one user's (see AnswerModel::build). The "ask" address parameter picks the question.
+     * off. $page is "folder", "overview", "projects", "tasks" or "subtasks". $scope is the visible projects keyed by id, each with "name",
+     * "sf_path" and, with SortaFolders, "sf_folder_id". $mine narrows the tasks to one user's (see AnswerModel::build). The "ask" address parameter picks the question.
      */
     public function build($page, array $scope, $mine = null)
     {
@@ -351,6 +439,30 @@ class BusyBeeHelper extends Base
             $scope[$id] = (is_array($project) ? $project : array()) + array('name' => '', 'sf_path' => '');
         }
 
-        return $this->busyBeeAnswerModel->build($scope, $questions, $this->request->getStringParam('ask'), is_array($mine) ? $mine : null);
+        return $this->busyBeeAnswerModel->build($scope, $questions, $this->request->getStringParam('ask'), is_array($mine) ? $mine : null, (int) $this->userSession->getId(), $this->request->getIntegerParam('ask_page', 1));
+    }
+
+    /**
+     * The pager under an answer's table, in the markup Kanboard core's list pager uses (so core's CSS styles it): "Showing 1-25 of 36",
+     * Previous and Next. It is empty when every row fits on one page. $params are the address parameters of the page (they carry the
+     * list's own order, direction and page, see linkParams()); the asked question and the answer's page are added. The answer's page is
+     * "ask_page" because "page" belongs to the list under the bar.
+     */
+    public function pager(array $ask, array $params, $controller, $action)
+    {
+        if ($ask['pages'] <= 1) {
+            return '';
+        }
+
+        $link = function ($label, $page) use ($ask, $params, $controller, $action) {
+            return $this->helper->url->link($label, $controller, $action, array_merge($params, array('ask' => $ask['asked'], 'ask_page' => $page > 1 ? $page : null)), false);
+        };
+        $first = ($ask['page'] - 1) * $ask['per_page'] + 1;
+
+        return '<div class="pagination busybee-pagination">'
+            .'<span class="pagination-showing">'.t('Showing %d-%d of %d', $first, min($ask['rows_total'], $ask['page'] * $ask['per_page']), $ask['rows_total']).'</span>'
+            .'<span class="pagination-previous">'.($ask['page'] > 1 ? $link('&larr; '.t('Previous'), $ask['page'] - 1) : '&larr; '.t('Previous')).'</span>'
+            .'<span class="pagination-next">'.($ask['page'] < $ask['pages'] ? $link(t('Next').' &rarr;', $ask['page'] + 1) : t('Next').' &rarr;').'</span>'
+            .'</div>';
     }
 }

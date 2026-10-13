@@ -7,7 +7,7 @@ if (isset($sf_page, $sf_scope) && is_array($sf_scope)) {
     if ($ask !== null) {
         echo $this->render('BusyBee:ask', array(
             'ask' => $ask,
-            'url_params' => isset($url_params) ? $url_params : array(),
+            'url_params' => $this->busyBee->linkParams(isset($url_params) ? $url_params : array()),
             'ask_controller' => isset($ask_controller) ? $ask_controller : 'FolderController',
             'ask_action' => isset($ask_action) ? $ask_action : 'show',
         ));

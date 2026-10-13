@@ -25,26 +25,30 @@
             <?= $this->busyBee->t('Show BusyBee icons') ?>
         </label>
         <p class="form-help"><?= $this->busyBee->t('Show or hide icons displayed in front of the questions and in front of an answer.') ?></p>
-        <p class="form-help"><?= $this->busyBee->t('Question icon') ?></p>
-        <div class="busybee-choices">
-            <?php foreach (\Kanboard\Plugin\BusyBee\Helper\BusyBeeHelper::questionIcons() as $key => $label): ?>
-                <label>
-                    <input type="radio" name="question_icon" value="<?= $key ?>" <?= $question_icon === $key ? 'checked' : '' ?>>
-                    <?= $this->busyBee->icon('question', $key) ?>
-                    <?= $this->busyBee->t($label) ?>
-                </label>
-            <?php endforeach ?>
-        </div>
-        <p class="form-help"><?= $this->busyBee->t('Answer icon') ?></p>
-        <div class="busybee-choices">
-            <?php foreach (\Kanboard\Plugin\BusyBee\Helper\BusyBeeHelper::answerIcons() as $key => $label): ?>
-                <label>
-                    <input type="radio" name="answer_icon" value="<?= $key ?>" <?= $answer_icon === $key ? 'checked' : '' ?>>
-                    <?= $this->busyBee->icon('answer', $key) ?>
-                    <?= $this->busyBee->t($label) ?>
-                </label>
-            <?php endforeach ?>
-        </div>
+        <fieldset>
+            <legend><?= $this->busyBee->t('Question icon') ?></legend>
+            <div class="busybee-choices">
+                <?php foreach (\Kanboard\Plugin\BusyBee\Helper\BusyBeeHelper::questionIcons() as $key => $label): ?>
+                    <label>
+                        <input type="radio" name="question_icon" value="<?= $key ?>" <?= $question_icon === $key ? 'checked' : '' ?>>
+                        <?= $this->busyBee->icon('question', $key) ?>
+                        <?= $this->busyBee->t($label) ?>
+                    </label>
+                <?php endforeach ?>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend><?= $this->busyBee->t('Answer icon') ?></legend>
+            <div class="busybee-choices">
+                <?php foreach (\Kanboard\Plugin\BusyBee\Helper\BusyBeeHelper::answerIcons() as $key => $label): ?>
+                    <label>
+                        <input type="radio" name="answer_icon" value="<?= $key ?>" <?= $answer_icon === $key ? 'checked' : '' ?>>
+                        <?= $this->busyBee->icon('answer', $key) ?>
+                        <?= $this->busyBee->t($label) ?>
+                    </label>
+                <?php endforeach ?>
+            </div>
+        </fieldset>
     </fieldset>
 
     <button type="submit" class="btn btn-blue"><?= t('Save') ?></button>

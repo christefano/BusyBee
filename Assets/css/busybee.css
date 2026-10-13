@@ -16,6 +16,7 @@ i.busybee-qicon, i.busybee-aicon { font-size: 1.5em; width: 1.15em; height: 1.15
     text-decoration: none;
 }
 .busybee-q:hover { border-color: var(--color-primary); }
+.busybee-q:focus-visible { border-color: var(--color-primary); outline: 2px solid var(--color-primary); outline-offset: 2px; }  /* core's a:focus removes the outline */
 .busybee-on { border-color: var(--color-primary); font-weight: bold; }
 .busybee-count { font-size: 0.85em; padding: 0 0.5em; border-radius: 2em; background: var(--table-list-header-background-color); }
 .busybee-hot { background: #fbe9e7; color: #b71c1c; }
@@ -25,7 +26,7 @@ i.busybee-qicon, i.busybee-aicon { font-size: 1.5em; width: 1.15em; height: 1.15
 .busybee-scroll { overflow-x: auto; }
 .busybee-table { width: 100%; min-width: 30em; }
 .busybee-path { display: block; opacity: 0.8; font-size: 0.9em; }
-.busybee-more { margin: 0.5em 0 0; opacity: 0.8; }
+.busybee-pagination { margin: 0.75em 0 1em; }
 .busybee-track { display: inline-flex; width: 8em; height: 0.6em; margin-right: 0.5em; background: var(--table-list-header-background-color); border-radius: 0.3em; overflow: hidden; vertical-align: middle; }
 .busybee-track i { display: block; height: 100%; background: var(--color-primary); }
 .busybee-track i.busybee-late { background: #b71c1c; }

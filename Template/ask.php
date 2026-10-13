@@ -90,7 +90,7 @@ $answerIcon = $icons ? $this->busyBee->icon('answer') : '';
                                     <?php if ($row['blocker_visible']): ?>
                                         <td>
                                             <?= $this->url->link($this->text->e($row['blocker_title']), 'TaskViewController', 'show', array('task_id' => $row['blocker_id'], 'project_id' => $row['blocker_project_id'])) ?>
-                                            <small class="busybee-path"><?= $row['blocker_path'] === '' ? '' : $this->text->e($row['blocker_path']).' &rsaquo; ' ?><?= $this->text->e($row['blocker_project']) ?></small>
+                                            <small class="busybee-path"><?= $row['blocker_path'] === '' ? '' : $this->text->e($row['blocker_path']).' &rsaquo; ' ?><?= $this->text->e($row['blocker_project']) ?><?= empty($row['blocker_closed']) ? '' : ' '.$this->text->e(t('(closed project)')) ?></small>
                                         </td>
                                         <td><?= (int) $row['blocker_owner_id'] > 0 ? $this->busyBee->userLink($row['blocker_owner_id'], $row['blocker_owner_name'] ?: $row['blocker_owner_username']) : t('Unassigned') ?></td>
                                     <?php else: ?>
@@ -102,9 +102,7 @@ $answerIcon = $icons ? $this->busyBee->icon('answer') : '';
                             </tbody>
                         </table>
                     </div>
-                    <?php if ($ask['rows_total'] > count($ask['rows'])): ?>
-                        <p class="busybee-more"><?= t('Showing the first %d of %d.', count($ask['rows']), $ask['rows_total']) ?></p>
-                    <?php endif ?>
+                    <?= $this->busyBee->pager($ask, $url_params, $askController, $askAction) ?>
                 <?php endif ?>
             <?php else: ?>
                 <?php $n = (int) $ask['total'] ?>
@@ -123,6 +121,7 @@ $answerIcon = $icons ? $this->busyBee->icon('answer') : '';
                             'unowned' => t('Every open task has an owner.'),
                             'over' => t('No task is over its estimate.'),
                             'stuck' => t('No task has been stuck for 30 days.'),
+                            'active' => t('No task has changed in the last 30 days.'),
                         )[$asked] ?>
                     <?php elseif ($asked === 'late'): ?>
                         <?= $n === 1 ? $this->busyBee->t('1 task in 1 folder is late.') : t('%s in %s are late.', $taskText($n), $plural((int) $ask['folders'], '%d folder', '%d folders')) ?>
@@ -132,6 +131,8 @@ $answerIcon = $icons ? $this->busyBee->icon('answer') : '';
                         <?= $n === 1 ? t('1 task has no owner.') : t('%d tasks have no owner.', $n) ?>
                     <?php elseif ($asked === 'over'): ?>
                         <?= $n === 1 ? t('1 task is over its estimate.') : t('%d tasks are over their estimate.', $n) ?>
+                    <?php elseif ($asked === 'active'): ?>
+                        <?= $n === 1 ? t('1 task changed in the last 30 days.') : t('%d tasks changed in the last 30 days.', $n) ?>
                     <?php elseif ($asked === 'stuck'): ?>
                         <?= $n === 1 ? t('1 task has not moved in 30 days.') : t('%d tasks have not moved in 30 days.', $n) ?>
                     <?php else: ?>
@@ -148,6 +149,7 @@ $answerIcon = $icons ? $this->busyBee->icon('answer') : '';
                         'over' => array(t('Owner'), t('Hours')),
                         'stuck' => array(t('Owner'), t('Not moved for')),
                         'week' => array(t('Owner'), t('Change')),
+                        'active' => array(t('Owner'), t('Change'), t('Last activity')),
                     );
                     $dayText = function ($days) {
                         return $days === 1 ? t('1 day') : t('%d days', $days);
@@ -155,7 +157,7 @@ $answerIcon = $icons ? $this->busyBee->icon('answer') : '';
                     ?>
                     <div class="busybee-scroll">
                         <table class="busybee-table">
-                            <thead><tr><th><?= t('Task') ?></th><th><?= $heads[$asked][0] ?></th><th><?= $heads[$asked][1] ?></th></tr></thead>
+                            <thead><tr><th><?= t('Task') ?></th><?php foreach ($heads[$asked] as $head): ?><th><?= $head ?></th><?php endforeach ?></tr></thead>
                             <tbody>
                             <?php foreach ($ask['rows'] as $row): ?>
                                 <tr>
@@ -163,6 +165,12 @@ $answerIcon = $icons ? $this->busyBee->icon('answer') : '';
                                         <?= $this->url->link($this->text->e($row['title']), 'TaskViewController', 'show', array('task_id' => $row['id'], 'project_id' => $row['project_id'])) ?>
                                         <small class="busybee-path"><?= $row['path'] === '' ? '' : $this->text->e($row['path']).' &rsaquo; ' ?><?= $this->text->e($row['project']) ?></small>
                                     </td>
+                                    <?php if ($asked === 'active'): ?>
+                                        <?php $ago = max(0, (int) floor(($now - (int) $row['stamp']) / 86400)) ?>
+                                        <td><?= (int) $row['owner_id'] > 0 ? $this->busyBee->userLink($row['owner_id'], $row['owner_name'] ?: $row['owner_username']) : t('Unassigned') ?></td>
+                                        <td><?= $this->text->e($this->busyBee->changeText($row['change'])) ?></td>
+                                        <td><?= $ago === 0 ? t('Today') : t('%s ago', $dayText($ago)) ?></td>
+                                    <?php else: ?>
                                     <td>
                                         <?php if ($asked === 'unowned'): ?>
                                             <?= (int) $row['date_due'] > 0 ? $this->dt->date((int) $row['date_due']) : t('No due date') ?>
@@ -185,14 +193,13 @@ $answerIcon = $icons ? $this->busyBee->icon('answer') : '';
                                             <?= $dayText(max(0, (int) ceil(((int) $row['stamp'] - $now) / 86400))) ?>
                                         <?php endif ?>
                                     </td>
+                                    <?php endif ?>
                                 </tr>
                             <?php endforeach ?>
                             </tbody>
                         </table>
                     </div>
-                    <?php if ($n > count($ask['rows'])): ?>
-                        <p class="busybee-more"><?= t('Showing the first %d of %d.', count($ask['rows']), $n) ?></p>
-                    <?php endif ?>
+                    <?= $this->busyBee->pager($ask, $url_params, $askController, $askAction) ?>
                 <?php endif ?>
             <?php endif ?>
         </div>

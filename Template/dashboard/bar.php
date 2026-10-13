@@ -7,7 +7,7 @@ $page = $this->busyBee->page();
     <?php if ($ask !== null): ?>
         <?= $this->render('BusyBee:ask', array(
             'ask' => $ask,
-            'url_params' => array('user_id' => $user['id']),
+            'url_params' => $this->busyBee->linkParams(array('user_id' => $user['id'])),
             'ask_controller' => 'DashboardController',
             'ask_action' => $page === 'overview' ? 'show' : $page,
         )) ?>
